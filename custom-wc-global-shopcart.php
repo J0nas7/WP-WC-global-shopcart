@@ -12,16 +12,17 @@
 class custom_wc_global_shopcart extends WP_Widget {
     // The construct part
     function __construct() {
-        parent::__construct(
-         
-        // Base ID of your widget
-        'custom_wc_global_shopcart', 
-         
-        // Widget name will appear in UI
-        __('Custom WC global shopcart', 'custom_wc_global_shopcart_domain'), 
-         
-        // Widget description
-        array( 'description' => __( 'Display WooCommerce cart items globally', 'custom_wc_global_shopcart_domain' ), )
+        parent::__construct( 
+            // Base ID of your widget
+            'custom_wc_global_shopcart', 
+            
+            // Widget name will appear in UI
+            __('Custom WC global shopcart', 'custom_wc_global_shopcart_domain'), 
+            
+            // Widget description
+            array(
+                'description' => __( 'Display WooCommerce cart items globally', 'custom_wc_global_shopcart_domain' )
+            )
         );
     }
 
@@ -57,50 +58,79 @@ class custom_wc_global_shopcart extends WP_Widget {
             $widgetContent .= "<a href='".$buttonLink."' class='cart-button'>".$buttonText."</a>";
             $widgetContent .= $products;
         $widgetContent .= "</div>";
-        echo __( $widgetContent, 'custom_wc_global_shopcart_domain' );
+
+        echo $widgetContent;
         echo $args['after_widget'];
     }
 
     // Creating widget Backend
     public function form( $instance ) {
-      	$title = isset($instance['title']) ? $instance[ 'title' ] : __( 'New title', 'custom_wc_global_shopcart_domain' );
+        $title = isset($instance['title']) ? $instance[ 'title' ] : __( 'New title', 'custom_wc_global_shopcart_domain' );
       	$numberOfItemsLabel = isset($instance['numberOfItemsLabel']) ? $instance[ 'numberOfItemsLabel' ] : __( 'N. of items: ', 'custom_wc_global_shopcart_domain' );
       	$buttonLink = isset($instance['buttonLink']) ? $instance[ 'buttonLink' ] : __( '/cart/', 'custom_wc_global_shopcart_domain' );
       	$buttonText = isset($instance['buttonText']) ? $instance[ 'buttonText' ] : __( 'Go to cart', 'custom_wc_global_shopcart_domain' );
-        $fields = array(
-            "Title:" => array(
+        $showProductImage = isset($instance['showProductImage']) ? $instance[ 'showProductImage' ] : 'no';
+        $showProductTitle = isset($instance['showProductTitle']) ? $instance[ 'showProductTitle' ] : 'no';
+        $showProductQuantity = isset($instance['showProductQuantity']) ? $instance[ 'showProductQuantity' ] : 'no';
+
+        $inputFields = array(
+            __( 'Title', 'custom_wc_global_shopcart_domain' ) => array(
                 "id" => "title", 
                 "content" => $title
             ),
-            "Number of Items label:" => array(
+            __( 'Number of Items label:', 'custom_wc_global_shopcart_domain' ) => array(
                 "id" => "numberOfItemsLabel",
                 "content" => $numberOfItemsLabel
             ),
-            "Button link" => array(
+            __( 'Button link:', 'custom_wc_global_shopcart_domain' ) => array(
                 "id" => "buttonLink", 
                 "content" => $buttonLink
             ),
-            "Button text" => array(
+            __( 'Button text:', 'custom_wc_global_shopcart_domain' ) => array(
                 "id" => "buttonText", 
                 "content" => $buttonText
             )
         );
+
+        $radioFields = array(
+            __( 'Show Product Image:', 'custom_wc_global_shopcart_domain' ) => array(
+                "id" => "showProductImage",
+                "content" => $showProductImage
+            ),
+            __( 'Show Product Title:', 'custom_wc_global_shopcart_domain' ) => array(
+                "id" => "showProductTitle",
+                "content" => $showProductTitle
+            ),
+            __( 'Show Product Quantity:', 'custom_wc_global_shopcart_domain' ) => array(
+                "id" => "showProductQuantity",
+                "content" => $showProductQuantity
+            )
+        );
         // Widget admin form
-        echo "<p>";
-        foreach ($fields AS $label => $data) {
-            echo "<label for='".$this->get_field_id($data['id'])."'>"._e($label)."</label>";
-            echo "<input class='widefat' id='".$this->get_field_id($data['id'])."' name='".$this->get_field_name($data['id'])."' type='text' value='".esc_attr($data['content'])."' />";
-        }
-        echo "</p>";
+        echo "<div>";
+            // Input text fields
+            foreach ($inputFields AS $label => $data) {
+                echo "<label for='".$this->get_field_id($data['id'])."'>".$label."</label>";
+                echo "<input class='widefat' id='".$this->get_field_id($data['id'])."' name='".$this->get_field_name($data['id'])."' type='text' value='".esc_attr($data['content'])."' />";
+            }
+
+            // Radio fields
+            foreach ($radioFields AS $label => $data) {
+                echo "<p>";
+                    echo "<label class='widefat' style='display: inline-block;' for='".$this->get_field_id($data['id'])."'>".$label."</label>";
+                    echo _e('Yes')." <input class='".$this->get_field_id($data['id'])."' name='".$this->get_field_name($data['id'])."' type='radio' value='yes' ".($data['content'] == 'yes' ? "checked" : "")." />";
+                    echo _e('No')." <input class='".$this->get_field_id($data['id'])."' name='".$this->get_field_name($data['id'])."' type='radio' value='no' ".($data['content'] == 'no' ? "checked" : "")." />";
+                echo "</p>";
+            }
+        echo "</div>";
     }
 
     // Updating widget replacing old instances with new
     public function update( $new_instance, $old_instance ) {
-        $instance = array();
-        $instance['title'] = ( ! empty( $new_instance['title'] ) ) ? strip_tags( $new_instance['title'] ) : '';
-        $instance['numberOfItemsLabel'] = ( ! empty( $new_instance['numberOfItemsLabel'] ) ) ? strip_tags( $new_instance['numberOfItemsLabel'] ) : '';
-      	$instance['buttonLink'] = ( ! empty( $new_instance['buttonLink'] ) ) ? strip_tags( $new_instance['buttonLink'] ) : '';
-      	$instance['buttonText'] = ( ! empty( $new_instance['buttonText'] ) ) ? strip_tags( $new_instance['buttonText'] ) : '';
+        $instances = array("title", "numberOfItemsLabel", "buttonLink", "buttonText", "showProductImage", "showProductTitle", "showProductQuantity");
+        foreach ($instances AS $theInstance) {
+            $instance[$theInstance] = (!empty($new_instance[$theInstance])) ? strip_tags($new_instance[$theInstance]) : '';
+        }
         return $instance;
     }
 // Class custom_wc_global_shopcart ends here
